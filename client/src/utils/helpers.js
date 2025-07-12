@@ -51,8 +51,8 @@ export const slugify = (text) => {
     .toString()
     .toLowerCase()
     .replace(/\s+/g, '-')
-    .replace(/[^\w\-]+/g, '')
-    .replace(/\-\-+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
     .replace(/^-+/, '')
     .replace(/-+$/, '');
 };
@@ -102,7 +102,7 @@ export const deepClone = (obj) => {
   if (typeof obj === 'object') {
     const clonedObj = {};
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         clonedObj[key] = deepClone(obj[key]);
       }
     }
@@ -112,7 +112,7 @@ export const deepClone = (obj) => {
 
 export const pick = (obj, keys) => {
   return keys.reduce((result, key) => {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       result[key] = obj[key];
     }
     return result;
@@ -189,7 +189,7 @@ export const getPriorityColor = (priority) => {
 export const getStatusColor = (status) => {
   const colors = {
     pending: 'text-gray-600 bg-gray-100',
-    'in-progress': 'text-blue-600 bg-blue-100',
+    'in progress': 'text-blue-600 bg-blue-100',
     completed: 'text-green-600 bg-green-100'
   };
   return colors[status] || colors.pending;

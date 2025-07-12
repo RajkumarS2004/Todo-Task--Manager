@@ -231,9 +231,11 @@ const Settings = () => {
               <div>
                 <label className="block text-sm sm:text-base font-semibold text-[#00eaff] mb-2">Language</label>
                 <select
+                  id="language"
                   value={settings.preferences.language}
                   onChange={(e) => handleSettingChange('preferences', 'language', e.target.value)}
                   className="w-full px-4 py-3 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl text-[#b0b8c1] focus:outline-none focus:border-[#00eaff]/40 focus:ring-2 focus:ring-[#00eaff]/20 transition-all duration-300"
+                  aria-label="Select language"
                 >
                   <option value="en">English</option>
                   <option value="es">Spanish</option>
@@ -244,9 +246,11 @@ const Settings = () => {
               <div>
                 <label className="block text-sm sm:text-base font-semibold text-[#00eaff] mb-2">Timezone</label>
                 <select
+                  id="timezone"
                   value={settings.preferences.timezone}
                   onChange={(e) => handleSettingChange('preferences', 'timezone', e.target.value)}
                   className="w-full px-4 py-3 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl text-[#b0b8c1] focus:outline-none focus:border-[#00eaff]/40 focus:ring-2 focus:ring-[#00eaff]/20 transition-all duration-300"
+                  aria-label="Select timezone"
                 >
                   <option value="UTC">UTC</option>
                   <option value="EST">Eastern Time</option>
@@ -257,9 +261,11 @@ const Settings = () => {
               <div>
                 <label className="block text-sm sm:text-base font-semibold text-[#00eaff] mb-2">Date Format</label>
                 <select
+                  id="dateFormat"
                   value={settings.preferences.dateFormat}
                   onChange={(e) => handleSettingChange('preferences', 'dateFormat', e.target.value)}
                   className="w-full px-4 py-3 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl text-[#b0b8c1] focus:outline-none focus:border-[#00eaff]/40 focus:ring-2 focus:ring-[#00eaff]/20 transition-all duration-300"
+                  aria-label="Select date format"
                 >
                   <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                   <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -269,9 +275,11 @@ const Settings = () => {
               <div>
                 <label className="block text-sm sm:text-base font-semibold text-[#00eaff] mb-2">Time Format</label>
                 <select
+                  id="timeFormat"
                   value={settings.preferences.timeFormat}
                   onChange={(e) => handleSettingChange('preferences', 'timeFormat', e.target.value)}
                   className="w-full px-4 py-3 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl text-[#b0b8c1] focus:outline-none focus:border-[#00eaff]/40 focus:ring-2 focus:ring-[#00eaff]/20 transition-all duration-300"
+                  aria-label="Select time format"
                 >
                   <option value="12h">12-hour</option>
                   <option value="24h">24-hour</option>

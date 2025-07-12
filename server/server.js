@@ -25,6 +25,19 @@ const io = socketIo(server, {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cache-Control']
+  },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 10000,
+  maxHttpBufferSize: 1e6,
+  allowRequest: (req, callback) => {
+    // Add cache-control header for WebSocket upgrade requests
+    if (req.headers.upgrade === 'websocket') {
+      req.headers['cache-control'] = 'no-cache';
+    }
+    callback(null, true);
   }
 });
 
@@ -97,6 +110,17 @@ app.use(passport.initialize());
 app.use(passport.session());
 passportConfig(passport);
 
+// Socket.IO route handler with proper headers
+app.use('/socket.io', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
+// Static file serving for uploads
+app.use('/uploads', express.static('uploads'));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
@@ -106,30 +130,65 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// WebSocket authentication and connection handling
+// WebSocket middleware for headers and authentication
 io.use((socket, next) => {
+  // Set cache-control header for WebSocket connections
+  if (socket.handshake.headers.upgrade === 'websocket') {
+    socket.handshake.headers['cache-control'] = 'no-cache';
+  }
+  
   const token = socket.handshake.auth.token;
+  
   if (!token) {
-    return next(new Error('Authentication error'));
+    // Allow connection without authentication for public events
+    socket.userId = null;
+    socket.authenticated = false;
+    return next();
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.userId = decoded.id;
+    socket.authenticated = true;
     next();
   } catch (error) {
-    next(new Error('Authentication error'));
+    console.error('WebSocket authentication error:', error.message);
+    // Allow connection but mark as unauthenticated
+    socket.userId = null;
+    socket.authenticated = false;
+    next();
   }
 });
 
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.userId}`);
-  
-  // Join user to their personal room
-  socket.join(`user_${socket.userId}`);
+  if (socket.authenticated) {
+    console.log(`Authenticated user connected: ${socket.userId}`);
+    // Join user to their personal room
+    socket.join(`user_${socket.userId}`);
+  } else {
+    console.log('Unauthenticated user connected');
+  }
 
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.userId}`);
+    if (socket.authenticated) {
+      console.log(`Authenticated user disconnected: ${socket.userId}`);
+    } else {
+      console.log('Unauthenticated user disconnected');
+    }
+  });
+
+  // Handle authentication events
+  socket.on('authenticate', (token) => {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.id;
+      socket.authenticated = true;
+      socket.join(`user_${socket.userId}`);
+      socket.emit('authenticated', { userId: socket.userId });
+      console.log(`User authenticated via socket: ${socket.userId}`);
+    } catch (error) {
+      socket.emit('authentication_error', { message: 'Invalid token' });
+    }
   });
 });
 

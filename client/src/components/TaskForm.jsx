@@ -42,7 +42,7 @@ const TaskForm = ({ task, onSubmit, onCancel }) => {
 
     try {
       if (task) {
-        await onSubmit(task._id, formData);
+        await onSubmit(formData);
       } else {
         await onSubmit(formData);
       }

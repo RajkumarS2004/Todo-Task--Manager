@@ -22,21 +22,26 @@ const Dashboard = () => {
       // Handle different response formats
       let tasksArray = [];
       if (response && response.data) {
-        // Check if response.data is an array (direct tasks)
-        if (Array.isArray(response.data)) {
-          tasksArray = response.data;
+        // Check if response.data has a data property with tasks (backend format)
+        if (response.data.data && response.data.data.tasks && Array.isArray(response.data.data.tasks)) {
+          tasksArray = response.data.data.tasks;
         }
         // Check if response.data has a tasks property
         else if (response.data.tasks && Array.isArray(response.data.tasks)) {
           tasksArray = response.data.tasks;
         }
-        // Check if response.data has a data property with tasks
+        // Check if response.data is an array (direct tasks)
+        else if (Array.isArray(response.data)) {
+          tasksArray = response.data;
+        }
+        // Check if response.data has a data property that is an array
         else if (response.data.data && Array.isArray(response.data.data)) {
           tasksArray = response.data.data;
         }
       }
       
       console.log('Dashboard tasks found:', tasksArray.length);
+      console.log('Dashboard tasks array:', tasksArray);
       setTasks(tasksArray);
       setRecentTasks(tasksArray.slice(0, 5)); // Show only 5 most recent
       
@@ -44,6 +49,12 @@ const Dashboard = () => {
       calculateProductivityMetrics(tasksArray);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
       toast.error('Failed to load dashboard data');
       setTasks([]);
       setRecentTasks([]);
@@ -81,8 +92,14 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    console.log('Dashboard: User authenticated:', !!user);
+    console.log('Dashboard: User data:', user);
+    if (user) {
+      fetchTasks();
+    } else {
+      console.log('Dashboard: No user found, skipping task fetch');
+    }
+  }, [user]);
 
   // Calculate dashboard stats
   const totalTasks = Array.isArray(tasks) ? tasks.length : 0;

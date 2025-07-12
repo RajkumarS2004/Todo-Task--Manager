@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { tasksAPI } from '../../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { tasksAPI, updateTask } from '../../services/api';
 import { toast } from 'react-toastify';
 import TaskList from '../../components/TaskList';
 import TaskForm from '../../components/TaskForm';
@@ -14,6 +14,8 @@ const Tasks = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [showEditTask, setShowEditTask] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all',
@@ -32,7 +34,7 @@ const Tasks = () => {
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Fetch tasks
-  const fetchTasks = async (page = 1) => {
+  const fetchTasks = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       
@@ -101,15 +103,16 @@ const Tasks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.limit, sortBy, sortOrder, filters]);
 
   useEffect(() => {
     fetchTasks();
-  }, [filters, sortBy, sortOrder]);
+  }, [fetchTasks]);
 
   // Create task
   const handleCreateTask = async (taskData) => {
     try {
+      console.log('Creating task with data:', taskData);
       const response = await tasksAPI.createTask(taskData);
       console.log('Create task response:', response);
       
@@ -209,6 +212,60 @@ const Tasks = () => {
     { value: 'priority', label: 'Priority', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
     { value: 'title', label: 'Title', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16' }
   ];
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setShowEditTask(true);
+  };
+
+  const handleUpdateTask = async (updatedTask) => {
+    try {
+      console.log('Updating task:', editingTask._id, 'with data:', updatedTask);
+      
+      // Call your API to update the task
+      const result = await updateTask(editingTask._id, updatedTask);
+      console.log('Update result:', result);
+
+      // Update your local state
+      setTasks((prevTasks) => {
+        const updatedTasks = prevTasks.map((task) =>
+          task._id === editingTask._id ? result : task
+        );
+        console.log('Updated tasks:', updatedTasks);
+        return updatedTasks;
+      });
+      
+      setShowEditTask(false);
+      setEditingTask(null);
+      toast.success('Task updated successfully! ✨');
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      toast.error('Failed to update task. Please try again.');
+    }
+  };
+
+  // Handle status change
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      console.log('Updating status for task:', taskId, 'to:', newStatus);
+      
+      const result = await updateTask(taskId, { status: newStatus });
+      console.log('Status update result:', result);
+      
+      setTasks((prevTasks) => {
+        const updatedTasks = prevTasks.map((task) =>
+          task._id === taskId ? result : task
+        );
+        console.log('Tasks after status update:', updatedTasks);
+        return updatedTasks;
+      });
+      
+      toast.success(`Task status updated to ${newStatus}! ✨`);
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+      toast.error('Failed to update task status. Please try again.');
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
@@ -378,6 +435,8 @@ const Tasks = () => {
                       ? 'bg-[#00eaff]/20 text-[#00eaff] border border-[#00eaff]/30' 
                       : 'text-[#b0b8c1] hover:text-[#00eaff] hover:bg-[#00eaff]/10'
                   }`}
+                  aria-label="Switch to list view"
+                  title="Switch to list view"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -390,6 +449,8 @@ const Tasks = () => {
                       ? 'bg-[#00eaff]/20 text-[#00eaff] border border-[#00eaff]/30' 
                       : 'text-[#b0b8c1] hover:text-[#00eaff] hover:bg-[#00eaff]/10'
                   }`}
+                  aria-label="Switch to grid view"
+                  title="Switch to grid view"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -401,8 +462,10 @@ const Tasks = () => {
             <TaskList
               tasks={tasks}
               loading={loading}
+              onEdit={handleEditTask}
               onDelete={handleDeleteTask}
               onShare={handleShareTask}
+              onStatusChange={handleStatusChange}
               viewMode={viewMode}
               setViewMode={setViewMode}
               sortBy={sortBy}
@@ -422,6 +485,26 @@ const Tasks = () => {
           task={selectedTask}
           onClose={() => setShowShareModal(false)}
         />
+      )}
+
+      {/* Edit Task Modal */}
+      {showEditTask && editingTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowEditTask(false)} />
+          
+          {/* Modal */}
+          <div className="relative z-10 w-full max-w-2xl">
+            <TaskForm 
+              task={editingTask}
+              onSubmit={handleUpdateTask} 
+              onCancel={() => {
+                setShowEditTask(false);
+                setEditingTask(null);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

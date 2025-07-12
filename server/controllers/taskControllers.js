@@ -4,7 +4,9 @@ const User = require('../models/User');
 // Create a new task
 const createTask = async (req, res) => {
   try {
-    const { title, description, priority, dueDate } = req.body;
+    const { title, description, priority, status, dueDate } = req.body;
+    
+    console.log('Creating task with data:', { title, description, priority, status, dueDate });
     
     if (!title) {
       return res.status(400).json({ message: 'Title is required' });
@@ -14,11 +16,14 @@ const createTask = async (req, res) => {
       title, 
       description, 
       priority, 
+      status,
       dueDate,
       createdBy: req.userId 
     });
     
+    console.log('New task object:', newTask);
     const savedTask = await newTask.save();
+    console.log('Saved task:', savedTask);
     
     // Populate the createdBy field
     const populatedTask = await Task.findById(savedTask._id)
@@ -39,6 +44,9 @@ const createTask = async (req, res) => {
 // Get tasks with pagination and sorting
 const getTasks = async (req, res) => {
   try {
+    console.log('GetTasks: Request received for user:', req.userId);
+    console.log('GetTasks: Query params:', req.query);
+    
     const { page = 1, limit = 10, sortBy = 'createdAt', order = 'desc', status, priority } = req.query;
     const sortOrder = order === 'desc' ? -1 : 1;
     
@@ -61,6 +69,9 @@ const getTasks = async (req, res) => {
       .limit(Number(limit));
 
     const total = await Task.countDocuments(filter);
+
+    console.log('GetTasks: Found', tasks.length, 'tasks for user', req.userId);
+    console.log('GetTasks: Total tasks:', total);
 
     res.json({
       data: {
@@ -88,7 +99,11 @@ const getTaskById = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    res.json(task);
+    res.json({
+      data: {
+        task: task
+      }
+    });
   } catch (err) {
     console.error('Get task by ID error:', err);
     res.status(500).json({ message: 'Failed to fetch task' });
@@ -111,7 +126,11 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found or not authorized' });
     }
 
-    res.json(task);
+    res.json({
+      data: {
+        task: task
+      }
+    });
   } catch (err) {
     console.error('Update task error:', err);
     res.status(500).json({ message: 'Failed to update task' });
@@ -175,10 +194,25 @@ const shareTask = async (req, res) => {
       .populate('createdBy', 'name email avatar')
       .populate('sharedWith', 'name email avatar');
 
-    res.json(updatedTask);
+    res.json({
+      data: {
+        task: updatedTask
+      }
+    });
   } catch (err) {
     console.error('Share task error:', err);
     res.status(500).json({ message: 'Failed to share task' });
+  }
+};
+
+exports.getAnalytics = async (req, res) => {
+  try {
+    // Example: count total tasks and completed tasks
+    const totalTasks = await Task.countDocuments();
+    const completedTasks = await Task.countDocuments({ completed: true });
+    res.json({ totalTasks, completedTasks });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load analytics data' });
   }
 };
 

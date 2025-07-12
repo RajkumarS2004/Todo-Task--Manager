@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TaskItem = ({ task, onEdit, onDelete, onShare }) => {
+const TaskItem = ({ task, onEdit, onDelete, onShare, onStatusChange, viewMode = 'list' }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -72,12 +72,12 @@ const TaskItem = ({ task, onEdit, onDelete, onShare }) => {
   const isOverdue = task.dueDate && task.status !== 'completed' && new Date(task.dueDate) < new Date();
 
   return (
-    <div className="group relative">
+    <div className={`group relative ${viewMode === 'grid' ? 'h-full' : ''}`}>
       {/* Hover Background Effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#00eaff]/5 to-[#a259ff]/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       {/* Main Task Card */}
-      <div className="relative glass-dark rounded-2xl border border-[#00eaff]/20 p-6 shadow-dark hover:shadow-cyan transition-all duration-500 group-hover:scale-[1.02] group-hover:border-[#00eaff]/40">
+      <div className={`relative glass-dark rounded-2xl border border-[#00eaff]/20 p-6 shadow-dark hover:shadow-cyan transition-all duration-500 group-hover:scale-[1.02] group-hover:border-[#00eaff]/40 ${viewMode === 'grid' ? 'h-full flex flex-col' : ''}`}>
         
         {/* Header Section */}
         <div className="flex items-start justify-between mb-4">
@@ -100,9 +100,15 @@ const TaskItem = ({ task, onEdit, onDelete, onShare }) => {
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${priorityColors.bg} ${priorityColors.text} ${priorityColors.border} shadow-sm`}>
                   {task.priority}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors.bg} ${statusColors.text} ${statusColors.border} shadow-sm`}>
-                  {task.status}
-                </span>
+                <select
+                  value={task.status}
+                  onChange={(e) => onStatusChange && onStatusChange(task._id, e.target.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors.bg} ${statusColors.text} ${statusColors.border} shadow-sm bg-transparent cursor-pointer hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-[#00eaff]/30`}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
                 {isOverdue && (
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#ff6b6b]/20 text-[#ff6b6b] border border-[#ff6b6b]/30 shadow-sm animate-pulse">
                     Overdue
@@ -159,7 +165,7 @@ const TaskItem = ({ task, onEdit, onDelete, onShare }) => {
         )}
 
         {/* Footer with Dates */}
-        <div className="flex items-center justify-between pt-4 border-t border-[#00eaff]/10">
+        <div className={`flex items-center justify-between pt-4 border-t border-[#00eaff]/10 ${viewMode === 'grid' ? 'mt-auto' : ''}`}>
           <div className="flex items-center gap-4 text-xs text-[#b0b8c1]">
             {task.dueDate && (
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isOverdue ? 'bg-[#ff6b6b]/10 border border-[#ff6b6b]/20' : 'bg-[#00eaff]/10 border border-[#00eaff]/20'}`}>

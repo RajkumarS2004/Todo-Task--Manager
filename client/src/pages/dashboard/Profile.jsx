@@ -147,9 +147,11 @@ const Profile = () => {
                       </svg>
                       <input
                         type="file"
+                        id="avatar"
                         accept="image/*"
                         onChange={handleAvatarChange}
                         className="hidden"
+                        aria-label="Upload avatar image"
                       />
                     </label>
                   )}
@@ -176,12 +178,14 @@ const Profile = () => {
                   {isEditing ? (
                     <input
                       type="text"
+                      id="name"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl text-[#b0b8c1] placeholder-[#b0b8c1]/50 focus:outline-none focus:border-[#00eaff]/40 focus:ring-2 focus:ring-[#00eaff]/20 transition-all duration-300"
                       placeholder="Enter your full name"
                       required
+                      aria-label="Full name"
                     />
                   ) : (
                     <div className="p-4 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl">
@@ -206,12 +210,14 @@ const Profile = () => {
                 </label>
                 {isEditing ? (
                   <textarea
+                    id="bio"
                     name="bio"
                     value={formData.bio}
                     onChange={handleInputChange}
                     rows={4}
                     className="w-full px-4 py-3 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl text-[#b0b8c1] placeholder-[#b0b8c1]/50 focus:outline-none focus:border-[#00eaff]/40 focus:ring-2 focus:ring-[#00eaff]/20 transition-all duration-300 resize-none"
                     placeholder="Tell us about yourself..."
+                    aria-label="Bio"
                   />
                 ) : (
                   <div className="p-4 bg-[#1a1a1a]/50 border border-[#00eaff]/20 rounded-lg sm:rounded-xl">

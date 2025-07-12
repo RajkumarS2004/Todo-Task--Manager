@@ -5,11 +5,12 @@ const userSchema = new mongoose.Schema({
   // OAuth provider IDs
   googleId: { type: String, sparse: true },
   githubId: { type: String, sparse: true },
-  facebookId: { type: String, sparse: true },
+  linkedinId: { type: String, sparse: true },
   
   email: { type: String, required: true, unique: true },
   password: { type: String }, // Optional for OAuth users
   name: { type: String, required: true },
+  bio: { type: String, default: '' },
   avatar: String,
   isEmailVerified: { type: Boolean, default: false },
   emailVerificationToken: String,
@@ -42,14 +43,14 @@ userSchema.methods.hasPassword = function() {
 
 // Method to check if user has any OAuth provider
 userSchema.methods.hasOAuthProvider = function() {
-  return !!(this.googleId || this.githubId || this.facebookId);
+  return !!(this.googleId || this.githubId || this.linkedinId);
 };
 
 // Method to get OAuth provider
 userSchema.methods.getOAuthProvider = function() {
   if (this.googleId) return 'google';
   if (this.githubId) return 'github';
-  if (this.facebookId) return 'facebook';
+  if (this.linkedinId) return 'linkedin';
   return null;
 };
 

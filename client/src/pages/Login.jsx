@@ -128,7 +128,7 @@ const Login = () => {
           <div className="space-y-3">
             <OAuthButton provider="google" />
             <OAuthButton provider="github" />
-            <OAuthButton provider="facebook" />
+            <OAuthButton provider="linkedin" />
           </div>
 
           {/* Footer */}

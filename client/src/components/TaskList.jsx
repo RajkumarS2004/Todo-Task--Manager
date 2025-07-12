@@ -2,13 +2,28 @@ import { useState } from 'react';
 import TaskItem from './TaskItem';
 import ShareTaskModal from './ShareTaskModal';
 
-const TaskList = ({ tasks, loading, onEdit, onDelete, onShare, pagination, onPageChange }) => {
+const TaskList = ({ 
+  tasks = [], 
+  loading, 
+  onEdit, 
+  onDelete, 
+  onShare, 
+  onStatusChange,
+  viewMode = 'list',
+  setViewMode,
+  sortBy,
+  sortOrder,
+  onSortChange,
+  sortOptions = [],
+  pagination, 
+  onPageChange 
+}) => {
   const [shareModal, setShareModal] = useState({ show: false, taskId: null });
   
   // Debug logging
-  console.log('TaskList received tasks:', tasks);
-  console.log('TaskList loading:', loading);
-  console.log('TaskList tasks length:', tasks?.length);
+  // console.log('TaskList received tasks:', tasks);
+  // console.log('TaskList loading:', loading);
+  // console.log('TaskList tasks length:', tasks?.length);
 
   const handleShare = (taskId) => {
     setShareModal({ show: true, taskId });
@@ -57,7 +72,7 @@ const TaskList = ({ tasks, loading, onEdit, onDelete, onShare, pagination, onPag
     );
   }
 
-  if (tasks.length === 0) {
+  if (!tasks || tasks.length === 0) {
     return (
       <div className="glass-dark rounded-2xl border border-[#00eaff]/20 p-12 shadow-dark text-center">
         <div className="flex flex-col items-center space-y-6">
@@ -91,8 +106,72 @@ const TaskList = ({ tasks, loading, onEdit, onDelete, onShare, pagination, onPag
 
   return (
     <div className="space-y-6">
+      {/* Sort Controls */}
+      {sortOptions && sortOptions.length > 0 && (
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="sort-select" className="text-sm text-[#b0b8c1]">Sort by:</label>
+            <select
+              id="sort-select"
+              name="sort"
+              value={sortBy}
+              onChange={(e) => onSortChange(e.target.value, sortOrder)}
+              className="bg-[#1a1a1a] border border-[#00eaff]/20 rounded-lg px-3 py-1 text-sm text-[#b0b8c1] focus:outline-none focus:border-[#00eaff]"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => onSortChange(sortBy, sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-1 rounded-lg text-[#b0b8c1] hover:text-[#00eaff] hover:bg-[#00eaff]/10 transition-all duration-300"
+              aria-label={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
+              title={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-lg transition-all duration-300 ${
+                viewMode === 'list' 
+                  ? 'bg-[#00eaff]/20 text-[#00eaff] border border-[#00eaff]/30' 
+                  : 'text-[#b0b8c1] hover:text-[#00eaff] hover:bg-[#00eaff]/10'
+              }`}
+              aria-label="Switch to list view"
+              title="Switch to list view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-lg transition-all duration-300 ${
+                viewMode === 'grid' 
+                  ? 'bg-[#00eaff]/20 text-[#00eaff] border border-[#00eaff]/30' 
+                  : 'text-[#b0b8c1] hover:text-[#00eaff] hover:bg-[#00eaff]/10'
+              }`}
+              aria-label="Switch to grid view"
+              title="Switch to grid view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Task Items */}
-      <div className="space-y-4">
+      <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
         {tasks.map((task) => (
           <TaskItem
             key={task._id}
@@ -100,6 +179,8 @@ const TaskList = ({ tasks, loading, onEdit, onDelete, onShare, pagination, onPag
             onEdit={onEdit}
             onDelete={onDelete}
             onShare={handleShare}
+            onStatusChange={onStatusChange}
+            viewMode={viewMode}
           />
         ))}
       </div>

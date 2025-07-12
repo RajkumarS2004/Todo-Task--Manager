@@ -1,31 +1,23 @@
 import React, { useState } from 'react';
 
-// Creative design system
-const borders = {
-  light: 'border-[#e5e7eb]',
-  dark: 'border-[#444]',
-};
-
-const shadows = {
-  light: 'shadow-[0_4px_24px_0_rgba(241,194,125,0.12)]',
-  dark: 'shadow-[0_4px_24px_0_rgba(30,30,30,0.32)]',
-};
-
-const TaskFilters = ({ filters, onFilterChange }) => {
+const TaskFilters = ({ filters, onFiltersChange, onFilterChange }) => {
   const [dark] = useState(false);
 
   const handleChange = (name, value) => {
-    onFilterChange({ [name]: value });
+    const changeHandler = onFiltersChange || onFilterChange;
+    changeHandler({ [name]: value });
   };
 
   return (
     <div className="space-y-6">
       {/* Status Filter */}
       <div>
-        <label className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
+        <label htmlFor="status-filter" className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
           Status
         </label>
         <select
+          id="status-filter"
+          name="status"
           value={filters.status}
           onChange={(e) => handleChange('status', e.target.value)}
           className={`w-full px-4 py-3 rounded-2xl border ${dark ? 'border-[#bfa06a]/30 bg-[#232526]/50 text-[#e2e8f0]' : 'border-[#f1c27d]/30 bg-white/50 text-[#6b7280]'} focus:outline-none focus:ring-2 ${dark ? 'focus:ring-[#bfa06a]' : 'focus:ring-[#f1c27d]'} focus:border-transparent transition-all duration-300`}
@@ -39,10 +31,12 @@ const TaskFilters = ({ filters, onFilterChange }) => {
 
       {/* Priority Filter */}
       <div>
-        <label className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
+        <label htmlFor="priority-filter" className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
           Priority
         </label>
         <select
+          id="priority-filter"
+          name="priority"
           value={filters.priority}
           onChange={(e) => handleChange('priority', e.target.value)}
           className={`w-full px-4 py-3 rounded-2xl border ${dark ? 'border-[#bfa06a]/30 bg-[#232526]/50 text-[#e2e8f0]' : 'border-[#f1c27d]/30 bg-white/50 text-[#6b7280]'} focus:outline-none focus:ring-2 ${dark ? 'focus:ring-[#bfa06a]' : 'focus:ring-[#f1c27d]'} focus:border-transparent transition-all duration-300`}
@@ -56,10 +50,12 @@ const TaskFilters = ({ filters, onFilterChange }) => {
 
       {/* Sort By */}
       <div>
-        <label className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
+        <label htmlFor="sort-by-filter" className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
           Sort By
         </label>
         <select
+          id="sort-by-filter"
+          name="sortBy"
           value={filters.sortBy}
           onChange={(e) => handleChange('sortBy', e.target.value)}
           className={`w-full px-4 py-3 rounded-2xl border ${dark ? 'border-[#bfa06a]/30 bg-[#232526]/50 text-[#e2e8f0]' : 'border-[#f1c27d]/30 bg-white/50 text-[#6b7280]'} focus:outline-none focus:ring-2 ${dark ? 'focus:ring-[#bfa06a]' : 'focus:ring-[#f1c27d]'} focus:border-transparent transition-all duration-300`}
@@ -75,10 +71,12 @@ const TaskFilters = ({ filters, onFilterChange }) => {
 
       {/* Sort Order */}
       <div>
-        <label className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
+        <label htmlFor="sort-order-filter" className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
           Sort Order
         </label>
         <select
+          id="sort-order-filter"
+          name="order"
           value={filters.order}
           onChange={(e) => handleChange('order', e.target.value)}
           className={`w-full px-4 py-3 rounded-2xl border ${dark ? 'border-[#bfa06a]/30 bg-[#232526]/50 text-[#e2e8f0]' : 'border-[#f1c27d]/30 bg-white/50 text-[#6b7280]'} focus:outline-none focus:ring-2 ${dark ? 'focus:ring-[#bfa06a]' : 'focus:ring-[#f1c27d]'} focus:border-transparent transition-all duration-300`}
@@ -90,10 +88,12 @@ const TaskFilters = ({ filters, onFilterChange }) => {
 
       {/* Items Per Page */}
       <div>
-        <label className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
+        <label htmlFor="limit-filter" className={`block text-sm font-semibold ${dark ? 'text-[#f1c27d]' : 'text-[#bfa06a]'} mb-3`}>
           Items Per Page
         </label>
         <select
+          id="limit-filter"
+          name="limit"
           value={filters.limit}
           onChange={(e) => handleChange('limit', parseInt(e.target.value))}
           className={`w-full px-4 py-3 rounded-2xl border ${dark ? 'border-[#bfa06a]/30 bg-[#232526]/50 text-[#e2e8f0]' : 'border-[#f1c27d]/30 bg-white/50 text-[#6b7280]'} focus:outline-none focus:ring-2 ${dark ? 'focus:ring-[#bfa06a]' : 'focus:ring-[#f1c27d]'} focus:border-transparent transition-all duration-300`}
@@ -107,14 +107,17 @@ const TaskFilters = ({ filters, onFilterChange }) => {
 
       {/* Clear Filters Button */}
       <button
-        onClick={() => onFilterChange({
-          status: '',
-          priority: '',
-          sortBy: 'createdAt',
-          order: 'desc',
-          limit: 20,
-          page: 1
-        })}
+        onClick={() => {
+          const changeHandler = onFiltersChange || onFilterChange;
+          changeHandler({
+            status: '',
+            priority: '',
+            sortBy: 'createdAt',
+            order: 'desc',
+            limit: 20,
+            page: 1
+          });
+        }}
         className={`w-full py-3 px-4 bg-gradient-to-r from-[#e2b07a] to-[#f1c27d] text-white rounded-2xl font-semibold shadow-lg hover:from-[#f1c27d] hover:to-[#bfa06a] transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 transform`}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

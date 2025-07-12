@@ -1,6 +1,6 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
+const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const User = require('../models/User');
 
 const passportConfig = (passport) => {
@@ -107,31 +107,31 @@ const passportConfig = (passport) => {
     console.log('⚠️  GitHub OAuth credentials not found. GitHub login will be disabled.');
   }
 
-  // Facebook OAuth Strategy
-  if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
+  // LinkedIn OAuth Strategy
+  if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
     passport.use(
-      new FacebookStrategy(
+      new LinkedInStrategy(
         {
-          clientID: process.env.FACEBOOK_CLIENT_ID,
-          clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-          callbackURL: '/api/auth/facebook/callback',
-          profileFields: ['id', 'displayName', 'photos', 'email']
+          clientID: process.env.LINKEDIN_CLIENT_ID,
+          clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+          callbackURL: '/api/auth/linkedin/callback',
+          scope: ['r_emailaddress', 'r_liteprofile']
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
             // Check if user already exists
             let user = await User.findOne({ 
               $or: [
-                { facebookId: profile.id },
+                { linkedinId: profile.id },
                 { email: profile.emails?.[0]?.value }
               ]
             });
 
             if (user) {
-              // If user exists but doesn't have facebookId, update it
-              if (!user.facebookId) {
-                user.facebookId = profile.id;
-                user.avatar = profile.photos[0]?.value;
+              // If user exists but doesn't have linkedinId, update it
+              if (!user.linkedinId) {
+                user.linkedinId = profile.id;
+                user.avatar = profile.photos?.[0]?.value;
                 await user.save();
               }
               return done(null, user);
@@ -139,11 +139,11 @@ const passportConfig = (passport) => {
 
             // Create new user
             user = new User({
-              facebookId: profile.id,
-              email: profile.emails?.[0]?.value || `${profile.id}@facebook.com`,
+              linkedinId: profile.id,
+              email: profile.emails?.[0]?.value || `${profile.id}@linkedin.com`,
               name: profile.displayName,
-              avatar: profile.photos[0]?.value,
-              isEmailVerified: true // Facebook emails are verified
+              avatar: profile.photos?.[0]?.value,
+              isEmailVerified: true // LinkedIn emails are verified
             });
 
             await user.save();
@@ -154,9 +154,9 @@ const passportConfig = (passport) => {
         }
       )
     );
-    console.log('✅ Facebook OAuth strategy configured');
+    console.log('✅ LinkedIn OAuth strategy configured');
   } else {
-    console.log('⚠️  Facebook OAuth credentials not found. Facebook login will be disabled.');
+    console.log('⚠️  LinkedIn OAuth credentials not found. LinkedIn login will be disabled.');
   }
 
   passport.serializeUser((user, done) => {

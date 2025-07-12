@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 
-const ShareTaskModal = ({ onSubmit, onCancel }) => {
+const ShareTaskModal = ({ task, onClose, onSubmit, onCancel }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +65,7 @@ const ShareTaskModal = ({ onSubmit, onCancel }) => {
               Share Task
             </h2>
             <p className="text-sm sm:text-lg text-[#b0b8c1] font-medium px-2">
-              Share this task with another user by entering their email address.
+              {task ? `Share "${task.title}" with another user by entering their email address.` : 'Share this task with another user by entering their email address.'}
             </p>
           </div>
 
@@ -78,6 +78,7 @@ const ShareTaskModal = ({ onSubmit, onCancel }) => {
               <input
                 type="email"
                 id="email"
+                name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -90,7 +91,7 @@ const ShareTaskModal = ({ onSubmit, onCancel }) => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
               <button
                 type="button"
-                onClick={onCancel}
+                onClick={onClose || onCancel}
                 className="flex-1 py-3 sm:py-4 px-4 sm:px-6 btn-secondary font-semibold touch-manipulation"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

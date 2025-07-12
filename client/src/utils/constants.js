@@ -34,7 +34,7 @@ export const API_ENDPOINTS = {
 // Task Status
 export const TASK_STATUS = {
   PENDING: 'pending',
-  IN_PROGRESS: 'in-progress',
+  IN_PROGRESS: 'in progress',
   COMPLETED: 'completed',
 };
 

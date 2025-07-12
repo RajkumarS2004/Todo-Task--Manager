@@ -60,6 +60,8 @@
   html {
     scroll-behavior: smooth;
     font-family: 'Inter', system-ui, sans-serif;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
   }
   
   body {
@@ -92,6 +94,12 @@
   @media (max-width: 640px) {
     html {
       font-size: 14px;
+    }
+    
+    /* Optimize animations for mobile */
+    * {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
     }
     
     /* Improve touch targets on mobile */

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { tasksAPI } from '../../services/api';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../hooks/useAuth';
 
 const Analytics = () => {
+  const { user } = useAuth();
   const [analytics, setAnalytics] = useState({
     totalTasks: 0,
     completedTasks: 0,
@@ -20,20 +22,57 @@ const Analytics = () => {
   });
 
   const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [loading, setLoading] = useState(true);
 
   // Fetch tasks for analytics
   const fetchTasks = async () => {
     try {
-      const response = await tasksAPI.getTasks({ limit: 1000 }); // Get all tasks for analytics
-      calculateAnalytics(response.data.tasks);
+      setLoading(true);
+      console.log('Analytics: Fetching tasks...');
+      const response = await tasksAPI.getTasks({ limit: 100, sortBy: 'createdAt', order: 'desc' });
+      console.log('Analytics API Response:', response);
+      
+      // Handle different response formats
+      let tasksArray = [];
+      if (response && response.data) {
+        // Check if response.data has a data property with tasks (backend format)
+        if (response.data.data && response.data.data.tasks && Array.isArray(response.data.data.tasks)) {
+          tasksArray = response.data.data.tasks;
+        }
+        // Check if response.data has a tasks property
+        else if (response.data.tasks && Array.isArray(response.data.tasks)) {
+          tasksArray = response.data.tasks;
+        }
+        // Check if response.data is an array (direct tasks)
+        else if (Array.isArray(response.data)) {
+          tasksArray = response.data;
+        }
+        // Check if response.data has a data property that is an array
+        else if (response.data.data && Array.isArray(response.data.data)) {
+          tasksArray = response.data.data;
+        }
+      }
+      
+      console.log('Analytics: Tasks found:', tasksArray.length);
+      console.log('Analytics: Tasks array:', tasksArray);
+      calculateAnalytics(tasksArray);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('Error fetching tasks for analytics:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
       toast.error('Failed to load analytics data');
+    } finally {
+      setLoading(false);
     }
   };
 
   // Calculate analytics from tasks data
   const calculateAnalytics = (tasksData) => {
+    if (!Array.isArray(tasksData)) return { total: 0, completed: 0 };
     const total = tasksData.length;
     const completed = tasksData.filter(t => t.status === 'completed').length;
     const inProgress = tasksData.filter(t => t.status === 'in progress').length;
@@ -124,8 +163,14 @@ const Analytics = () => {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    console.log('Analytics: User authenticated:', !!user);
+    console.log('Analytics: User data:', user);
+    if (user) {
+      fetchTasks();
+    } else {
+      console.log('Analytics: No user found, skipping task fetch');
+    }
+  }, [user]);
 
   // Period filter options
   const periodOptions = [
@@ -187,8 +232,19 @@ const Analytics = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-        <div className="glass-dark rounded-xl sm:rounded-2xl border border-[#00eaff]/20 p-4 sm:p-6 shadow-dark hover:shadow-cyan transition-all duration-300">
+      {loading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="glass-dark rounded-xl sm:rounded-2xl border border-[#00eaff]/20 p-4 sm:p-6 shadow-dark animate-pulse">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-[#1a1a1a]/50 rounded-lg sm:rounded-xl mb-3"></div>
+              <div className="h-4 bg-[#1a1a1a]/50 rounded-lg w-20 mb-2"></div>
+              <div className="h-8 bg-[#1a1a1a]/50 rounded-lg w-16"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+          <div className="glass-dark rounded-xl sm:rounded-2xl border border-[#00eaff]/20 p-4 sm:p-6 shadow-dark hover:shadow-cyan transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 sm:h-12 sm:w-12 bg-[#00eaff]/10 rounded-lg sm:rounded-xl flex items-center justify-center border border-[#00eaff]/30">
               <svg className="h-5 w-5 sm:h-6 sm:w-6 text-[#00eaff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,6 +292,7 @@ const Analytics = () => {
           <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[#f1c27d]">{analytics.averageCompletionTime}d</div>
         </div>
       </div>
+      )}
 
       {/* Charts and Analytics Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
@@ -367,20 +424,24 @@ const Analytics = () => {
           <h3 className="text-lg sm:text-xl font-bold text-[#b0b8c1]">Recent Activity</h3>
         </div>
         <div className="space-y-3">
-          {analytics.recentActivity.map((task, index) => (
-            <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a]/50 border border-[#00eaff]/10">
-              <div className="flex items-center gap-3">
-                <div className={`h-2 w-2 rounded-full ${
-                  task.status === 'completed' ? 'bg-[#43e97b]' : 
-                  task.status === 'in progress' ? 'bg-[#00eaff]' : 'bg-[#f1c27d]'
-                }`}></div>
-                <span className="text-sm text-[#b0b8c1] font-medium truncate">{task.title}</span>
+          {analytics.recentActivity && analytics.recentActivity.length > 0 ? (
+            analytics.recentActivity.map((task, index) => (
+              <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a]/50 border border-[#00eaff]/10">
+                <div className="flex items-center gap-3">
+                  <div className={`h-2 w-2 rounded-full ${
+                    task.status === 'completed' ? 'bg-[#43e97b]' : 
+                    task.status === 'in progress' ? 'bg-[#00eaff]' : 'bg-[#f1c27d]'
+                  }`}></div>
+                  <span className="text-sm text-[#b0b8c1] font-medium truncate">{task.title}</span>
+                </div>
+                <span className="text-xs text-[#b0b8c1] font-medium">
+                  {new Date(task.updatedAt).toLocaleDateString()}
+                </span>
               </div>
-              <span className="text-xs text-[#b0b8c1] font-medium">
-                {new Date(task.updatedAt).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div>No recent tasks</div>
+          )}
         </div>
       </div>
     </div>
