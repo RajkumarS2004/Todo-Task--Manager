@@ -14,7 +14,7 @@ const jwt = require('jsonwebtoken');
 
 const authRoutes = require('./routes/Authroutes');
 const taskRoutes = require('./routes/taskrouter');
-const passportConfig = require('./config/passport');
+const passportConfig = equire('./config/Passport');
 
 dotenv.config();
 const app = express();
